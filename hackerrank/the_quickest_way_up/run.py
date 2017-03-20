@@ -25,6 +25,7 @@ def build_graph(snakes, ladders):
             adjacency_map[r].add(e)
             adjacency_map[r].remove(s)
 
+    for (s, _) in snake_ladders:
         del adjacency_map[s]
 
     return adjacency_map
