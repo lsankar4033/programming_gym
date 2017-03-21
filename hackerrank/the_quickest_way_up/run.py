@@ -48,10 +48,12 @@ def get_shortest_path_length(adjacency_map, start, end):
     # end wasn't reachable from start
     return -1
 
-# TODO - these could be moved into utilities if I keep doing hackerrank problems
+
+# NOTE - this method is just copied around in all hackerrank modules
 def get_int_from_stdin():
     return int(sys.stdin.readline().strip())
 
+# NOTE - this method is just copied around in all hackerrank modules
 def get_tuple_from_stdin():
     l = sys.stdin.readline().strip()
     return [int(i) for i in l.split(" ")]
