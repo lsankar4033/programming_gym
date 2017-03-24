@@ -14,6 +14,8 @@
 # NAIVE SOLUTION - TRY FIRST
 # Keep track of the last d elements in a queue and repeatedly remove the last element and do a sort on the
 # remaining elements. This will take O(n * dlog(d)) time...
+# Well, I timed out... Onto the more sophisticated solution
+# Added test cases to data/hackerrank/fraudulent_activity_notifications to experiment with
 import sys
 
 from statistics import median
@@ -23,16 +25,19 @@ def get_tuple_from_stdin():
     l = sys.stdin.readline().strip()
     return [int(i) for i in l.split(" ")]
 
-# start with naive solution
+# Naive solution timed out... Have to try the more sophisticated solution
 def get_num_notifications(expenditures, d):
+    num_notifications = 0
 
-    # iterate through all slices of length d and compare median with next elt
-    # (use median fn from statistics module)
+    for i in range(len(expenditures)-d):
+        m = median(expenditures[i:i+d])
+        if expenditures[i+d] >= 2 * m :
+            num_notifications += 1
 
-
-    pass
+    return num_notifications
 
 if __name__ == "__main__":
+    (n, d) = get_tuple_from_stdin()
+    expenditures = get_tuple_from_stdin()
 
-    #get_tuple_from_stdin()
-    pass
+    print(get_num_notifications(expenditures, d))
