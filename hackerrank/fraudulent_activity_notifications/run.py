@@ -16,6 +16,7 @@
 # remaining elements. This will take O(n * dlog(d)) time...
 # Well, I timed out... Onto the more sophisticated solution
 # Added test cases to data/hackerrank/fraudulent_activity_notifications to experiment with
+# actually, test case didn't fully add because my wifi sucks right now...
 import sys
 
 from statistics import median
