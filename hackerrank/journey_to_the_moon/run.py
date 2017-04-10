@@ -25,7 +25,7 @@ def get_num_valid_pairs(country_counts, num_islands):
 def build_country_counts(adjacency_list):
     country_counts = []
     while len(adjacency_list) > 0:
-        # BFS
+        # Search
         cur_node_count = 1
         (n, frontier) = adjacency_list.popitem()
         visited = {n}
