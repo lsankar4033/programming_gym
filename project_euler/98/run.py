@@ -1,11 +1,5 @@
 # Problem here: https://projecteuler.net/problem=98
-# A naive approach is to find all square numbers that are rearrangements of eachother for each word size
-# (number of digits) and then check if anagrams exist in the massive wordlist for these rearrangements
-# generating square numbers for a certain digit size is just a matter of iterating through all numbers that
-# create squares in the proper range and squaring them.
 
-# Ok, turns out there are only 42 anagram sets in the whole dictionary!
-# It's probably enough to just check these
 import math
 
 from collections import defaultdict
@@ -26,24 +20,21 @@ def words_from_file():
     words = []
     with open(words_file, "r") as f:
         words = f.readline().strip().replace("\"", "").split(",")
+        # Only words with unique letters
+        words = list(filter(lambda w: len(set(w)) == len(w), words))
+
     return words
 
-# given a word, returns a dict of char counts
-def get_word_dict(word):
-    ret = {}
-    for c in word:
-        if c in ret:
-            ret[c] += 1
-        else:
-            ret[c] = 1
-    return hashabledict(ret)
+def get_word_key(word):
+    return "".join(sorted(word))
 
 # returns a list of sets where each set contains mutual anagrams
 def collect_anagrams(words):
     word_dict_to_words = defaultdict(set)
-    for k, v in groupby(words, get_word_dict):
+    for k, v in groupby(words, get_word_key):
         word_dict_to_words[k] |= set(v)
 
+    # Remove all 1 length anagram groupings (single words)
     ret = {}
     for k, v in word_dict_to_words.items():
         if len(v) > 1:
@@ -109,17 +100,13 @@ def get_max_anagram_square(word_anagrams, str_square_anagrams):
     max_anagram_square = None
     for ((w1, w2), (s1, s2)) in product(word_anagram_pairs, str_square_anagram_pairs):
         word_permutations = set(get_permutations(w1, w2))
-        square_permutations = set(get_permutations(s1, s2) + get_permutations(s2, s1))
+        square_permutations = set(get_permutations(s1, s2)) | set(get_permutations(s2, s1))
 
         common_permutations = square_permutations & word_permutations
         valid_permutations = filter(lambda p: is_valid_perm(p, w1, w2, s1, s2), common_permutations)
         if len(list(valid_permutations)) > 0:
-            # TODO - check to make sure perm match doesn't create a case of two different letters assigned the
-            # same value!
-            print((w1, w2, s1, s2))
             max_square = max(int(s1), int(s2))
             if max_anagram_square is None or max_square > max_anagram_square:
-                print((w1, w2, s1, s2))
                 max_anagram_square = max_square
 
     return max_anagram_square
@@ -151,4 +138,4 @@ if __name__ == "__main__":
             print(max_anagram_square)
             break
 
-    print("Done. If no other output, didn't find any square word anagrams!")
+    print("Done.")
