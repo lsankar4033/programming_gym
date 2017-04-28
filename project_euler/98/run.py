@@ -14,7 +14,7 @@ class hashabledict(dict):
     def __eq__(self, other):
         return self.__key() == other.__key()
 
-words_file = "../../data/project_euler/98/words.txt"
+words_file = "words.txt"
 
 def words_from_file():
     words = []
