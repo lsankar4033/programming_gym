@@ -1,6 +1,7 @@
 # Problem here: https://leetcode.com/problems/alien-dictionary/#/description
 # Solution is to compare every consecutive pair of words to build up precedence graph and then topo-sort this
 # graph to get a character order that makes sense.
+# Time taken: 1 hr
 
 from collections import defaultdict
 
