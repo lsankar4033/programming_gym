@@ -97,6 +97,7 @@ def process_keypress(screen, state):
         # TODO: fast fall
         pass
 
+# TODO: implement row clear
 def clear_rows(state):
     pass
 
