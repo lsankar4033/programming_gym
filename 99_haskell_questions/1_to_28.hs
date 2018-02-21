@@ -1,5 +1,8 @@
 import System.Random
 import Control.Monad (replicateM)
+import Data.Ord (comparing)
+import Data.List (sortBy, groupBy)
+import Data.Function (on)
 
 -- problem 1: last element of list
 myLast :: [a] -> a
@@ -173,4 +176,25 @@ comb n xs = [xs !! i : ys | i <- [0..(length xs)-1],
                             ys <- comb (n-1) (drop (i+1) xs)]
 
 -- problem 27: disjoint subset grouping
+group :: [Int] -> [a] -> [[[a]]]
+combWithRemaining :: Int -> [a] -> [([a], [a])] -- second list is 'remaining' elements
 
+combWithRemaining 0 xs = [([], xs)]
+combWithRemaining _ [] = []
+combWithRemaining n (x:xs) = withFirst ++ withoutFirst
+  where
+    withFirst = [(x:comb, rem) | (comb, rem) <- combWithRemaining (n-1) xs]
+    withoutFirst = [(comb, x:rem) | (comb, rem) <- combWithRemaining n xs]
+
+group [] _ = [[]]
+group (g:gs) xs =
+  [comb:recurGroups | (comb, rem) <- combWithRemaining g xs,
+                      recurGroups <- group gs rem]
+
+-- problem 28: sort list according to sublist length
+lsort :: [[a]] -> [[a]]
+lsort l = sortBy (comparing length) l
+
+-- sort list according to sublist length frequency
+lfsort :: [[a]] -> [[a]]
+lfsort = concat . lsort . groupBy ((==) `on` length) . lsort
