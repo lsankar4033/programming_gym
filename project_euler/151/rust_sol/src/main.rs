@@ -72,7 +72,7 @@ struct Problem {
 }
 impl Problem {
     fn size(&self) -> usize {
-        self.size()
+        self.triangle.len()
     }
 
     fn num_rows(&self) -> usize {
@@ -98,7 +98,6 @@ fn generate_problem(size: usize) -> Problem {
     }
 }
 
-// exactly 1000 rows
 struct Solutions {
     map: HashMap<(usize, usize), i64>,
 }
@@ -108,7 +107,10 @@ struct Solutions {
 // pass mutable (borrow) references all the way down
 fn find_solution(problem: &Problem, solutions: &mut Solutions, i: usize, j: usize) -> i64 {
     match solutions.map.get(&(i, j)) {
-        Some(solution) => return *solution,
+        Some(solution) => {
+            println!("cache hit at {},{}", i, j);
+            return *solution;
+        }
 
         None => {
             let sol = if j == 0 {
@@ -139,13 +141,15 @@ fn find_solution(problem: &Problem, solutions: &mut Solutions, i: usize, j: usiz
 
 fn find_min_triangle(problem: Problem) -> i64 {
     // iterate through *all* solutions, find them, and keep track of the smallest one
-    let mut map: HashMap<(usize, usize), i64> = HashMap::new();
+    let map: HashMap<(usize, usize), i64> = HashMap::new();
     let mut solutions = Solutions { map };
 
     let mut min_solution = std::i64::MAX;
     let num_rows = problem.num_rows();
     for i in 0..problem.size() {
-        for j in 0..(num_rows - i) {
+        let start_row = problem.rows[i] as usize;
+        for j in 0..(num_rows - start_row) {
+            println!("Solving problem {},{}", i, j);
             let solution = find_solution(&problem, &mut solutions, i, j);
             solutions.map.insert((i, j), solution);
             if solution < min_solution {
@@ -210,16 +214,26 @@ mod test {
         let sol2 = find_solution(&problem, &mut solutions, 0, 3);
         assert_eq!(sol2, 1099837);
     }
+
+    #[test]
+    fn test_find_min_triangle_3() {
+        let problem = generate_problem(3);
+        let min = find_min_triangle(problem);
+        assert_eq!(min, -153582);
+    }
+
+    #[test]
+    fn test_find_min_triangle_10() {
+        let problem = generate_problem(10);
+        let min = find_min_triangle(problem);
+        assert_eq!(min, -488152);
+    }
 }
 
 fn main() {
-    let problem = generate_problem(10);
-    for i in 0..10 {
-        println!("{}", problem.triangle[i]);
-    }
-    // println!("Running...");
-    // let problem = generate_problem(500500);
-    // println!("Generated problem");
-    // let sol = find_min_triangle(problem);
-    // println!("{}", sol)
+    println!("Running...");
+    let problem = generate_problem(500500);
+    println!("Generated problem");
+    let sol = find_min_triangle(problem);
+    println!("{}", sol)
 }
