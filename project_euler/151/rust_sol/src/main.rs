@@ -41,7 +41,7 @@ fn generate_cols(size: usize) -> Vec<u32> {
 
     let mut row_size = 1;
     let mut col_idx = 0;
-    for i in 0..size {
+    for _ in 0..size {
         cols.push(col_idx);
         col_idx += 1;
         if col_idx == row_size {
@@ -63,12 +63,32 @@ fn generate_row_col_map(rows: &Vec<u32>, cols: &Vec<u32>) -> HashMap<(u32, u32),
     row_col_map
 }
 
+fn generate_row_sums(
+    triangle: &Vec<i64>,
+    row_col_map: &HashMap<(u32, u32), usize>,
+    num_rows: u32,
+) -> HashMap<(u32, u32), i64> {
+    let mut row_sums: HashMap<(u32, u32), i64> = HashMap::new();
+
+    for row in 0..num_rows {
+        let mut row_sum = 0;
+        for col in 0..(row + 1) {
+            let i = row_col_map.get(&(row, col)).unwrap();
+            row_sum += triangle[*i];
+            row_sums.insert((row, col), row_sum as i64);
+        }
+    }
+
+    row_sums
+}
+
+// NOTE: we can probably just have a row_col_val map instead of triangle, rows, cols
 struct Problem {
     triangle: Vec<i64>,
     rows: Vec<u32>,
     cols: Vec<u32>,
 
-    row_col_map: HashMap<(u32, u32), usize>,
+    row_sums: HashMap<(u32, u32), i64>,
 }
 impl Problem {
     fn size(&self) -> usize {
@@ -87,14 +107,23 @@ impl Problem {
 fn generate_problem(size: usize) -> Problem {
     let triangle = generate_triangle(size);
     let rows = generate_rows(size);
+
+    // NOTE: duplicated code...
+    let mut unique_rows: HashSet<u32> = HashSet::new();
+    for i in 0..rows.len() {
+        unique_rows.insert(rows[i]);
+    }
+    let num_rows = unique_rows.len();
+
     let cols = generate_cols(size);
     let row_col_map = generate_row_col_map(&rows, &cols);
+    let row_sums = generate_row_sums(&triangle, &row_col_map, num_rows as u32);
 
     Problem {
         triangle,
         rows,
         cols,
-        row_col_map,
+        row_sums,
     }
 }
 
@@ -102,13 +131,9 @@ struct Solutions {
     map: HashMap<(usize, usize), i64>,
 }
 
-// TODO: Change to iterator based instead of recursion! recursion results in stack overflow...
-// NOTE: getting references to work here ain't gonna be trivial :/. *That* is the learning I'll gather by solving this
-// pass mutable (borrow) references all the way down
 fn find_solution(problem: &Problem, solutions: &mut Solutions, i: usize, j: usize) -> i64 {
     match solutions.map.get(&(i, j)) {
         Some(solution) => {
-            println!("cache hit at {},{}", i, j);
             return *solution;
         }
 
@@ -116,20 +141,26 @@ fn find_solution(problem: &Problem, solutions: &mut Solutions, i: usize, j: usiz
             let sol = if j == 0 {
                 problem.triangle[i]
             } else {
-                let mut prev_solution: i64 = find_solution(problem, solutions, i, j - 1);
+                let prev_solution: i64 = find_solution(problem, solutions, i, j - 1);
 
                 // NOTE: is there a way to avoid this casting?
                 let start_col = problem.cols[i];
                 let ju32 = j as u32;
                 let row = problem.rows[i] + ju32;
 
-                for col_offset in 0..(j + 1) {
-                    let col = start_col + (col_offset as u32);
-                    let i = problem.row_col_map.get(&(row, col)).unwrap(); // TODO: should this unwrap be here?
-                    prev_solution += problem.triangle[*i];
-                }
-
-                prev_solution
+                let row_sum = if start_col == 0 {
+                    *problem
+                        .row_sums
+                        .get(&(row, start_col + (j as u32)))
+                        .unwrap()
+                } else {
+                    let full_row = problem
+                        .row_sums
+                        .get(&(row, start_col + (j as u32)))
+                        .unwrap();
+                    full_row - problem.row_sums.get(&(row, start_col - 1)).unwrap()
+                };
+                prev_solution + row_sum
             };
 
             solutions.map.insert((i, j), sol);
@@ -147,9 +178,9 @@ fn find_min_triangle(problem: Problem) -> i64 {
     let mut min_solution = std::i64::MAX;
     let num_rows = problem.num_rows();
     for i in 0..problem.size() {
+        println!("Solving problems rooted at {}", i);
         let start_row = problem.rows[i] as usize;
         for j in 0..(num_rows - start_row) {
-            println!("Solving problem {},{}", i, j);
             let solution = find_solution(&problem, &mut solutions, i, j);
             solutions.map.insert((i, j), solution);
             if solution < min_solution {
@@ -175,7 +206,7 @@ mod test {
         assert_eq!(problem.triangle, [273519]);
         assert_eq!(problem.rows, [0]);
         assert_eq!(problem.cols, [0]);
-        assert_eq!(problem.row_col_map.get(&(0, 0)).unwrap(), &0);
+        assert_eq!(problem.row_sums.get(&(0, 0)).unwrap(), &273519);
     }
 
     #[test]
@@ -187,18 +218,18 @@ mod test {
         assert_eq!(problem.triangle, [273519, -153582, 450905]);
         assert_eq!(problem.rows, [0, 1, 1]);
         assert_eq!(problem.cols, [0, 0, 1]);
-        assert_eq!(problem.row_col_map.get(&(0, 0)).unwrap(), &0);
-        assert_eq!(problem.row_col_map.get(&(1, 0)).unwrap(), &1);
-        assert_eq!(problem.row_col_map.get(&(1, 1)).unwrap(), &2);
+        assert_eq!(problem.row_sums.get(&(0, 0)).unwrap(), &273519);
+        assert_eq!(problem.row_sums.get(&(1, 0)).unwrap(), &-153582);
+        assert_eq!(problem.row_sums.get(&(1, 1)).unwrap(), &297323);
     }
 
     #[test]
     fn test_find_solution_3() {
         let problem = generate_problem(3);
 
-        let mut map: HashMap<(usize, usize), i64> = HashMap::new();
+        let map: HashMap<(usize, usize), i64> = HashMap::new();
         let mut solutions = Solutions { map };
-        let sol = find_solution(&problem, &mut solutions, 0, 2);
+        let sol = find_solution(&problem, &mut solutions, 0, 1);
         assert_eq!(sol, 570842)
     }
 
