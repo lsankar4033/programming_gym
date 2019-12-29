@@ -4,3 +4,5 @@ project_euler/*/*.txt
 __pycache__
 
 .python-version
+
+**/.exercism/metadata.json
