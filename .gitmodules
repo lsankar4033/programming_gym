@@ -1,0 +1,3 @@
+[submodule "go-pg"]
+	path = go-pg
+	url = https://github.com/lsankar4033/go-pg.git
