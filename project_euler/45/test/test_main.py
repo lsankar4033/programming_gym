@@ -25,7 +25,6 @@ def test_same_value_g():
 
     sg = same_value_g(g1(), g2())
 
-    print("Starting generation")
     assert next(sg) == 1
     assert next(sg) == 3
     assert next(sg) == 8
