@@ -29,15 +29,28 @@
 
 (defn tree-to-list
   [tree root]
-  :default)
+  (reduce (fn [lst new-root]
+            ; NOTE: don't love this...
+            (concat lst [(tree-to-list tree new-root)]))
+          (seq [root])
+          (get tree root)))
 
 (defn list-to-tree
-  [lst]
-  :default)
+  ; NOTE: recursive function that builds up a tree map
+  ([lst]
+   (list-to-tree lst {}))
+  ([[root & children] tree]
+   (reduce
+    (fn [tree child-lst]
+      (-> (list-to-tree child-lst tree)
+          (update root (partial cons (first child-lst)))))
+    tree
+    children)))
 
+; TODO: this works! ordering is just a little off..
 (defn run
   [new-root lst]
   (-> lst
       list-to-tree
       (reparent-tree new-root)
-      tree-to-list))
+      (tree-to-list new-root)))
