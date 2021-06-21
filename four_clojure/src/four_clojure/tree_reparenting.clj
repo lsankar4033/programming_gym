@@ -27,5 +27,17 @@
        (partition 2 1)
        (reduce reparent-child-parent-pair tree)))
 
-; TODO: conversion to/from list datastructure
-; Problem 130
+(defn tree-to-list
+  [tree root]
+  :default)
+
+(defn list-to-tree
+  [lst]
+  :default)
+
+(defn run
+  [new-root lst]
+  (-> lst
+      list-to-tree
+      (reparent-tree new-root)
+      tree-to-list))
