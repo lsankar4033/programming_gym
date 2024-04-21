@@ -6,3 +6,10 @@ __pycache__
 .python-version
 
 **/.exercism/metadata.json
+
+debug
+
+*.ptau
+*.zkey
+
+target
